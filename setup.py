@@ -38,7 +38,9 @@ setup(
         "sylvadbclient",
     ],
     include_package_data=True,
-    install_requires=read("requirements.txt").split("\n"),
+    install_requires=[
+        "slumber==0.7.1",
+    ],
     tests_require=tests_require,
     test_suite='sylvadbclient.tests',
     extras_require={},
