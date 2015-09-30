@@ -9,31 +9,7 @@ SYLVADB_PASS = os.environ.get("SYLVADB_PASS", "default")
 SYLVADB_GRAPH = os.environ.get("SYLVADB_GRAPH", None)
 
 
-class ConnectionTesCase(unittest.TestCase):
-
-    def test_can_instatiate_api(self):
-        api = API(auth=(SYLVADB_USER, SYLVADB_PASS))
-        self.assertTrue(api is not None)
-
-    def test_can_list_graphs(self):
-        api = API(auth=(SYLVADB_USER, SYLVADB_PASS))
-        graphs = api.get_graphs()
-        self.assertTrue(len(graphs) > 0)
-
-    def test_can_select_a_graph(self):
-        api = API(auth=(SYLVADB_USER, SYLVADB_PASS))
-        slug = api.get_graphs()[0]["slug"]
-        api.use(slug)
-        self.assertTrue(api._slug is not None)
-
-    def test_can_instantiate_graph(self):
-        api = API(auth=(SYLVADB_USER, SYLVADB_PASS))
-        slug = api.get_graphs()[0]["slug"]
-        graph = Graph(slug, auth=(SYLVADB_USER, SYLVADB_PASS))
-        self.assertTrue(graph is not None)
-
-
-class BaseTestCase(unittest.TestCase):
+class GraphTestSuite(unittest.TestCase):
 
     def setUp(self):
         self.api = API(auth=(SYLVADB_USER, SYLVADB_PASS))
@@ -43,16 +19,6 @@ class BaseTestCase(unittest.TestCase):
             self.slug = SYLVADB_GRAPH
         self.api.use(self.slug)
         self.graph = Graph(self.slug, auth=(SYLVADB_USER, SYLVADB_PASS))
-
-
-class APITestCase(BaseTestCase):
-
-    def test_can_list_nodetypes(self):
-        nodetypes = self.api.get_nodetypes()
-        self.assertTrue(len(nodetypes) > 0)
-
-
-class GraphTestSuite(BaseTestCase):
 
     def test_can_read_properties(self):
         self.assertTrue(self.graph.name is not None)
