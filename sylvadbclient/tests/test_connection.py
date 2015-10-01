@@ -2,7 +2,7 @@
 import os
 import unittest
 
-from api import Graph, API
+from sylvadbclient import Graph, API
 
 SYLVADB_USER = os.environ.get("SYLVADB_USER", "default")
 SYLVADB_PASS = os.environ.get("SYLVADB_PASS", "default")

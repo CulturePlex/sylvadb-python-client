@@ -1,4 +1,4 @@
-from .api import *
+from .api import API, Graph  # noqa
 
 __version__ = "0.0.1"
 __author__ = "Javier de la Rosa"

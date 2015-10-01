@@ -1,6 +1,6 @@
 include AUTHORS.txt
 include CHANGES.txt
 include LICENSE-MIT.txt
-include MANIFEST.in
 include README.rst
+include requirements.txt
 recursive-include sylvadbclient *.py

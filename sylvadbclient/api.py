@@ -30,7 +30,7 @@ def add_metaclass(metaclass):
 class BaseMeta(type):
     """Metaclass to populate resources properties by looking up _properties"""
 
-    def __new__(metaname, classname, baseclasses, attrs):
+    def __new__(metaname, classname, baseclasses, attrs):  # noqa
         cls = type.__new__(metaname, classname, baseclasses, attrs)
         for attr in cls._properties.keys():
             setattr(cls, attr, property(
