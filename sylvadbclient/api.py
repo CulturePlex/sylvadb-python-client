@@ -28,43 +28,86 @@ def add_metaclass(metaclass):
 
 
 class BaseMeta(type):
-    """Metaclass to populate resources properties by looking up _properties"""
+    """Metaclass to populate resources properties by looking up _attrs"""
 
     def __new__(metaname, classname, baseclasses, attrs):  # noqa
         cls = type.__new__(metaname, classname, baseclasses, attrs)
-        for attr in cls._properties.keys():
+        for attr in cls._attrs.keys():
             setattr(cls, attr, property(
                 # Getter
-                lambda self: self._properties.get(attr, None),
+                lambda self: self._attrs.get(attr, None),
                 # Setter
-                lambda self, value: self._properties.__setitem__(attr, value),
+                lambda self, value: self._attrs.__setitem__(attr, value),
             ))
         return cls
+
+
+class Base(object):
+
+    def get(self, key, *args, **kwargs):
+        """
+        If key is not found, a `KeyError` is returned.
+        An optional `default` value can be passed.
+        """
+        _key = self.__keytransform__(key)
+        try:
+            return self.__getitem__(_key)
+        except KeyError as e:
+            if args or kwargs:
+                return kwargs.get("default", args[0])
+            else:
+                raise e
+
+    def __keytransform__(self, key):
+        """
+        Extract the right key, `key` can be a string containing a slug,
+        an object with a `_slug` attribute, or a dictionary with a 'slug' key.
+        """
+        if isinstance(key, dict):
+            return key.get("slug")
+        elif hasattr(key, "_slug"):
+            return key._slug
+        return key
+
+    def __repr__(self):
+        mode = getattr(self, "_mode", None)
+        slug = getattr(self, "_slug", None)
+        if mode is not None:
+            if slug is not None:
+                msg = "{}{} of {}".format(mode.capitalize(),
+                                          self.__class__.__name__, slug)
+            else:
+                msg = "{}{}".format(mode.capitalize(), self.__class__.__name__)
+        else:
+            msg = "{}".format(self.__class__.__name__)
+        return "<SylvaDB {} at {}>".format(msg, hex(id(self)))
 
 
 @add_metaclass(BaseMeta)
 class Graph(object):
     """Graph class with properties and access to data and schema"""
-
-    _properties = {"name": None, "description": None}  # For the metaclass
+    _attrs = {
+        "name": None,
+        "description": None,
+        "public": False,
+    }  # For the metaclass
 
     def __init__(self, graph_slug, auth):
         self._api = API(auth=auth, graph_slug=graph_slug)
         self.nodes = Data(api=self._api, mode=NODE)
         self.relationships = Data(api=self._api, mode=RELATIONSHIP)
         self.rels = self.relationships
-
         self.pull()
 
     def push(self):
         """Push changes from the Graph properties to the server"""
-        self._api.patch_graph(params=self._properties)
+        self._api.patch_graph(params=self._attrs)
 
     def pull(self):
         """Pull changes to the Graph properties from the server"""
-        _properties = self._api.get_graph()
-        for prop in self._properties:
-            self._properties[prop] = _properties[prop]
+        _attrs = self._api.get_graph()
+        for prop in self._attrs:
+            self._attrs[prop] = _attrs[prop]
 
     def destroy(self):
         """Delete all contents and remove the Graph"""
@@ -80,34 +123,21 @@ class Graph(object):
             return self._api.export_graph()
 
 
-class Data(object):
+class Data(Base):
     """Data class to handle nodes and relationships"""
 
     def __init__(self, api, mode):
         self._api = api
         self._mode = mode
         self._types = None
-        self._schema = None
         self._datacols = {}
-
-    def pull(self):
-        """Pull data types from the server"""
-        self._types = getattr(self._api, "get_{}types".format(self._mode))()
 
     @property
     def types(self):
         """Lazy loading property to list data types (node and rel types)"""
         if self._types is None:
-            self.pull()
+            self._types = TypeCollection(self._api, self._mode)
         return self._types
-
-    def schema(self, datatype):
-        """Get the schema for the type"""
-        _key = self.__keytransform__(datatype)
-        if self._schema is None:
-            self._schema = getattr(
-                self._api, "get_{}type_schema".format(self._mode))(_key)
-        return self._schema
 
     def __getitem__(self, datatype):
         """
@@ -124,39 +154,6 @@ class Data(object):
         else:
             raise KeyError("{}type '{}' not found".format(self._mode, _key))
 
-    def get(self, datatype, *args, **kwargs):
-        """
-        Return a `DataCollection` of type `datatype`, referring to a node type
-        or relationship type. If not found, a `KeyError` is returned.
-        An optional `default` value can be passed.
-        """
-        _key = self.__keytransform__(datatype)
-        try:
-            return self.__getitem__(_key)
-        except KeyError as e:
-            if args or kwargs:
-                return kwargs.get("default", args[0])
-            else:
-                raise e
-
-    def properties(self, datatype):
-        """
-        Return the properties from the type of `type_slug`
-        """
-        _key = self.__keytransform__(datatype)
-        return getattr(
-            self._api,
-            "get_{}type_schema_properties".format(self._mode))(_key)
-
-    def delete_properties(self, datatype):
-        """
-        Return the properties from the type of `type_slug`
-        """
-        _key = self.__keytransform__(datatype)
-        return getattr(
-            self._api,
-            "delete_{}type_schema_properties".format(self._mode))(_key)
-
     def __iter__(self):
         """Return an interator over the types"""
         return iter(self.types)
@@ -165,40 +162,16 @@ class Data(object):
         """Return the number of types"""
         return len(self.types)
 
-    def __keytransform__(self, key):
-        """
-        Extract the right key, `key` can be a string containing a slug,
-        an object with a `_slug` attribute, or a dictionary with a 'slug' key.
-        """
-        if isinstance(key, dict):
-            return key.get("slug")
-        elif hasattr(key, "_slug"):
-            return key._slug
-        return key
 
+class BaseCollection(Base):
+    """BaseCollection class to handle collections"""
 
-class DataCollection(object):
-    """DataCollection class to handle collection of nodes or relationships"""
-
-    def __init__(self, api, mode, datatype_slug):
+    def __init__(self, api, mode, slug=None):
         self._api = api
         self._mode = mode
-        self._slug = datatype_slug
+        self._slug = slug
         self._data = None
         self._to_add = []  # Tracks new data to add in push
-
-    def push(self):
-        """Push new data to the server for the datatype `datatype_slug`"""
-        if self._to_add:
-            func = getattr(self._api, "post_{}s".format(self._mode))
-            func(self._slug, params=self._to_add)
-            self._to_add = []
-
-    def pull(self):
-        """Pull data from the server"""
-        func = getattr(self._api, "get_{}s".format(self._mode))
-        self._data = func(self._slug)
-        self._to_add = []
 
     @property
     def data(self):
@@ -207,18 +180,33 @@ class DataCollection(object):
             self.pull()
         return self._data
 
-    def append(self, data_dict):
+    def _hydrate(self, data_dict):
+        """Transform data to be sent to the server. Override to customize"""
+        return data_dict
+
+    def _dehydrate(self, data_dict):
+        """Transform data from server. Override to customize"""
+        return data_dict
+
+    def add(self, data_dict):
         """Add a new data dictionary to be added on a push"""
-        self._to_add.append(data_dict)
+        self._to_add.append(self._hydrate(data_dict))
 
     def all(self):
         """Return all the elements in the collection"""
-        return self.data.get("{}s".format(self._mode), []) + self._to_add
+        return self.data + self._to_add
 
     def single(self):
         """Return the first item dictionary in the collection"""
-        if self.data.get("{}s".format(self._mode), []):
-            return self.data["{}s".format(self._mode)][0]
+        data = self.data + self._to_add
+        if data:
+            return data[0]
+
+    def __getitem__(self, key):
+        # TODO: Lazy loading and slicing from server
+        _key = self.__keytransform__(key)
+        if isinstance(_key, (int, slice)):
+            return self.all()[_key]
 
     def __iter__(self):
         """Return an interator over the data"""
@@ -229,11 +217,81 @@ class DataCollection(object):
         return len(self.all())
 
 
+class DataCollection(BaseCollection):
+    """DataCollection class to handle collection of nodes or relationships"""
+
+    def __init__(self, api, mode, slug=None):
+        super(DataCollection, self).__init__(api, mode, slug)
+        self._properties = None
+
+    def _hydrate(self, data_dict):
+        """Transform data to be sent to the server. Override to customize"""
+        return {"id": None, "properties": data_dict}
+
+    def push(self):
+        """Push new data to the server for the datatype `datatype_slug`"""
+        if self._to_add:
+            func = getattr(self._api, "post_{}s".format(self._mode))
+            ids = func(self._slug, params=self._to_add)
+            if ids:
+                # Update IDs as returned by the server
+                for i, _id in enumerate(ids):
+                    self._to_add[i].update({"id": _id})
+                self._data += self._to_add
+            self._to_add = []
+
+    def pull(self):
+        """Pull data from the server"""
+        func = getattr(self._api, "get_{}s".format(self._mode))
+        data = func(self._slug)
+        self._data = data.get("{}s".format(self._mode), [])
+        self._to_add = []
+
+    @property
+    def properties(self):
+        """Lazy loading the properties of a data type"""
+        if self._properties is None:
+            self._properties = PropertyCollection(self._api, self._mode,
+                                                  self._slug)
+        return self._properties
+
+
+class TypeCollection(BaseCollection):
+    """TypeCollection class to handle collection of nodes or rels types"""
+
+    def push(self):
+        """Push new data to the server for the datatype `datatype_slug`"""
+        if self._to_add:
+            func = getattr(self._api, "post_{}types".format(self._mode))
+            func(params=self._to_add)
+            self._to_add = []
+
+    def pull(self):
+        """Pull data from the server"""
+        func = getattr(self._api, "get_{}types".format(self._mode))
+        self._data = func()
+        self._to_add = []
+
+
+class PropertyCollection(BaseCollection):
+
+    def pull(self):
+        """Pull type properties from the server"""
+        func = getattr(self._api,
+                       "get_{}type_schema_properties".format(self._mode))
+        self._data = func(self._slug)
+        if self._data:
+            self._data = self._data["properties"]
+
+
 class API(object):
 
     def __init__(self, auth, graph_slug=None):
         self._api = slumber.API(SYLVADB_API, auth=auth)
         self._slug = graph_slug
+
+    def __repr__(self):
+        return "<SylvaDB API at {}>".format(hex(id(self)))
 
     def use(self, graph_slug):
         """Change the graph over with the API works"""
