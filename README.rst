@@ -55,11 +55,15 @@ However, SylvaDB client provides a higher level API, the `Graph`:
 Almost every object can be retrieved from server by invoking the medthod `.pull()`, and any change can be saved by using `.push()`.
 In the event of running a `.pull()` before a `.push()`, all local changes are lost.
 
+.. code:: python
+
   >>> g.description = "Network"
 
   >>> g.push()
 
 Both nodes and relationships can be listed according to their schema type:
+
+.. code:: python
 
   >>> g.nodes.types.all()
   [{'description': None, 'name': 'Country', 'schema': 4, 'slug': 'country-2'},
@@ -83,6 +87,8 @@ Both nodes and relationships can be listed according to their schema type:
   ...
 
 And adding new nodes or relationships is as easy as adding a new dictionary to a type:
+
+.. code:: python
 
   >>> countries.add({'Name': 'United States'})
 
