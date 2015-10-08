@@ -284,10 +284,19 @@ class PropertyCollection(BaseCollection):
             self._data = self._data["properties"]
 
 
+class SlumberTokenAuth():
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, r):
+        r.headers['Authorization'] = "Token {0}".format(self.token)
+        return r
+
+
 class API(object):
 
-    def __init__(self, auth, graph_slug=None):
-        self._api = slumber.API(SYLVADB_API, auth=auth)
+    def __init__(self, token, graph_slug=None):
+        self._api = slumber.API(SYLVADB_API, auth=SlumberTokenAuth(token))
         self._slug = graph_slug
 
     def __repr__(self):
