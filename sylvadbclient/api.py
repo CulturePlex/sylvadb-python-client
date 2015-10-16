@@ -567,8 +567,9 @@ class API(object):
                     .types.relationships(relationshiptype_slug)
                     .relationships(relationship_id).delete())
 
-    def filter_node(self, type_slug, property_type, property_value):
+    def filter_nodes(self, nodetype_slug, limit=None, offset=None,
+                     params=None):
         return (self._api
-                    .nodes.get(type_slug=type_slug,
-                               property=property_type,
-                               value=property_value))
+                    .graphs(self._slug)
+                    .types.nodes(nodetype_slug)
+                    .filter.get(**params))
