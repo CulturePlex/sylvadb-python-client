@@ -309,50 +309,60 @@ class API(object):
     # Graphs methods
 
     def filter_graphs(self, params=None):
+        """Filtering over graphs using params"""
         # TODO: Filter and search
         return self._api.graphs.filter(params)
 
     def get_graphs(self):
+        """Get user graphs (collaborations too)"""
         return self._api.graphs.get()
 
     def post_graph(self, params=None):
+        """Create a new graph"""
         # The params available are:
         # - name
         # - description
         return self._api.graphs.post(params)
 
     def get_graph(self):
+        """Get the info about a graph"""
         return self._api.graphs(self._slug).get()
 
     def put_graph(self, params=None):
-        # The params available are:
+        """Modify info for a graph."""
+        # The params available are (omitted ones are removed):
         # - name
         # - description
         # - public
         return self._api.graphs(self._slug).put(params)
 
     def patch_graph(self, params=None):
-        # The params available are:
+        """Modify info for a graph."""
+        # The params available are (omitted ones aren't treated):
         # - name
         # - description
         # - public
         return self._api.graphs(self._slug).patch(params)
 
     def delete_graph(self):
+        """Delete a graph."""
         return self._api.graphs(self._slug).delete()
 
     # Export and import methods
     # The methods that allow export are all GET
     def export_graph(self):
+        """Export all the info for a graph."""
         return self._api.graphs(self._slug).export.graph.get()
 
     def export_schema(self):
+        """Export the schema for a graph."""
         return self._api.graphs(self._slug).export.schema.get()
 
     def export_data(self):
+        """Export the data for a graph."""
         return self._api.graphs(self._slug).export.data.get()
 
-    # The methods that allow export are all PUT
+    # The methods that allow import are all PUT
     # def import_graph(self, params=None):
     #     return self._api.graphs(self._slug).import.graph.put(params)
 
@@ -364,11 +374,13 @@ class API(object):
 
     # Schema methods
     def get_nodetypes(self):
+        """Get node types for a graph."""
         return (self._api
                     .graphs(self._slug)
                     .types.nodes.get())
 
     def post_nodetypes(self, params):
+        """Create node types for a graph."""
         # The params available are:
         # - name
         # - description
@@ -377,11 +389,13 @@ class API(object):
                     .types.nodes.post(params=params))
 
     def get_relationshiptypes(self):
+        """Get relationship types for a graph."""
         return (self._api
                     .graphs(self._slug)
                     .types.relationships.get())
 
     def post_relationshiptypes(self, params):
+        """Create relationship types for a graph."""
         # The params available are:
         # - name
         # - description
@@ -390,23 +404,35 @@ class API(object):
                     .types.relationships.post(params=params))
 
     def get_nodetype(self, nodetype_slug):
+        """Get a single node type for a graph."""
+        # Required:
+        # - nodetype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug).get())
 
     def delete_nodetype(self, nodetype_slug):
+        """Delete a single node type for a graph."""
+        # Required:
+        # - nodetype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug).delete())
 
     def get_nodetype_schema(self, nodetype_slug):
+        """Get the schema for a node type."""
+        # Required:
+        # - nodetype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .schema.get())
 
     def put_nodetype_schema(self, nodetype_slug, params=None):
-        # The params available are:
+        """Modify the schema for a node type."""
+        # Required:
+        # - nodetype_slug
+        # The params available are (omitted ones are removed):
         # - name
         # - description
         return (self._api
@@ -415,7 +441,10 @@ class API(object):
                     .schema.put(params))
 
     def patch_nodetype_schema(self, nodetype_slug, params=None):
-        # The params available are:
+        """Modify the schema for a node type."""
+        # Required:
+        # - nodetype_slug
+        # The params available are (omitted ones aren't treated):
         # - name
         # - description
         return (self._api
@@ -424,38 +453,58 @@ class API(object):
                     .schema.patch(params))
 
     def get_nodetype_schema_properties(self, nodetype_slug):
+        """Get the properties from a schema for a node type."""
+        # Required:
+        # - nodetype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .schema.properties.get())
 
     def post_nodetype_schema_properties(self, nodetype_slug, params=None):
+        """Create a property from a schema for a node type"""
+        # Required:
+        # - nodetype_slug
         # The params available are:
-        # - name
+        # - key
         # - description
+        # - datatype
+        # TODO: Use choices too
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .schema.properties.post(params))
 
     def get_relationshiptype(self, relationshiptype_slug):
+        """Get a single relationship type for a graph."""
+        # Required:
+        # - nodetype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug).get())
 
     def delete_relationshiptype(self, relationshiptype_slug):
+        """Delete a single relationship type for a graph."""
+        # Required:
+        # - relationshiptype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug).delete())
 
     def get_relationshiptype_schema(self, relationshiptype_slug):
+        """Get the schema for a relationship type."""
+        # Required:
+        # - relationshiptype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
                     .schema.get())
 
     def put_relationshiptype_schema(self, relationshiptype_slug, params=None):
-        # The params available are:
+        """Modify the schema for a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # The params available are (omitted ones are removed):
         # - name
         # - description
         return (self._api
@@ -465,7 +514,10 @@ class API(object):
 
     def patch_relationshiptype_schema(self, relationshiptype_slug,
                                       params=None):
-        # The params available are:
+        """Modify the schema for a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # The params available are (omitted ones aren't treated):
         # - name
         # - description
         return (self._api
@@ -474,6 +526,9 @@ class API(object):
                     .schema.patch(params))
 
     def get_relationshiptype_schema_properties(self, relationshiptype_slug):
+        """Get the properties from a schema for a relationship type."""
+        # Required:
+        # - relationshiptype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -481,9 +536,14 @@ class API(object):
 
     def post_relationshiptype_schema_properties(self, relationshiptype_slug,
                                                 params=None):
+        """Create a property from a schema for a relationship type"""
+        # Required:
+        # - relationshiptype_slug
         # The params available are:
-        # - name
+        # - key
         # - description
+        # - datatype
+        # TODO: Use choices too
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -491,42 +551,87 @@ class API(object):
 
     # Data methods
     def get_nodes(self, nodetype_slug):
+        """Get nodes for a node type."""
+        # Required:
+        # - nodetype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .nodes.get())
 
     def post_nodes(self, nodetype_slug, params=None):
+        """Create nodes for a node type."""
+        # Required:
+        # - nodetype_slug
+        # The params is a list of dict. Each dict is a node that will be
+        # created. The properties of the nodes must be the same that the
+        # properties in the schema for that type. Otherwise, the properties
+        # are ignored.
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .nodes.post(params))
 
+    def filter_nodes(self, nodetype_slug, limit=None, offset=None,
+                     params=None):
+        """Filtering over nodes for a node type using params."""
+        # Required:
+        # - nodetype_slug
+        # The params available are:
+        # - The properties and their values to filter.
+        return (self._api
+                    .graphs(self._slug)
+                    .types.nodes(nodetype_slug)
+                    .filter.get(**params))
+
     def get_node(self, nodetype_slug, node_id):
+        """Get info for a single node from a node type."""
+        # Required:
+        # - nodetype_slug
+        # - node id
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .nodes(node_id).get())
 
     def put_node(self, nodetype_slug, node_id, params=None):
+        """Modify a single node from a node type."""
+        # Required:
+        # - nodetype_slug
+        # - node id
+        # The params available are (omitted ones are removed):
+        # - The properties depending of the node type.
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .nodes(node_id).put(params))
 
     def patch_node(self, nodetype_slug, node_id, params=None):
+        """Modify a single node from a node type."""
+        # Required:
+        # - nodetype_slug
+        # - node id
+        # The params available are (omitted ones aren't treated):
+        # - The properties depending of the node type.
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .nodes(node_id).patch(params))
 
     def delete_node(self, nodetype_slug, node_id):
+        """Remove a single node from a node type."""
+        # Required:
+        # - nodetype_slug
+        # - node id
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
                     .nodes(node_id).delete())
 
     def get_relationships(self, relationshiptype_slug):
+        """Get relationships for a relationship type."""
+        # Required:
+        # - relationshiptype_slug
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -534,6 +639,13 @@ class API(object):
 
     def post_relationships(self, relationshiptype_slug,
                            params=None):
+        """Create relationships for a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # The params is a list of dict. Each dict is a relationship that
+        # will be created. The properties of the relationships must be
+        # the same that the properties in the schema for that type.
+        # Otherwise, the properties are ignored.
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -541,6 +653,10 @@ class API(object):
 
     def get_relationship(self, relationshiptype_slug,
                          relationship_id):
+        """Get info for a single relationship from a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # - relationship id
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -548,6 +664,12 @@ class API(object):
 
     def put_relationship(self, relationshiptype_slug,
                          relationship_id, params=None):
+        """Modify a single relationship from a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # - relationship id
+        # The params available are (omitted ones are removed):
+        # - The properties depending of the relationship type.
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -555,6 +677,12 @@ class API(object):
 
     def patch_relationship(self, relationshiptype_slug,
                            relationship_id, params=None):
+        """Modify a single relationship from a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # - relationship id
+        # The params available are (omitted ones aren't treated):
+        # - The properties depending of the relationship type.
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
@@ -562,14 +690,11 @@ class API(object):
 
     def delete_relationship(self, relationshiptype_slug,
                             relationship_id):
+        """Remove a single relationship from a relationship type."""
+        # Required:
+        # - relationshiptype_slug
+        # - relationship id
         return (self._api
                     .graphs(self._slug)
                     .types.relationships(relationshiptype_slug)
                     .relationships(relationship_id).delete())
-
-    def filter_nodes(self, nodetype_slug, limit=None, offset=None,
-                     params=None):
-        return (self._api
-                    .graphs(self._slug)
-                    .types.nodes(nodetype_slug)
-                    .filter.get(**params))
