@@ -93,7 +93,7 @@ class Graph(object):
     }  # For the metaclass
 
     def __init__(self, graph_slug, auth):
-        self._api = API(auth=auth, graph_slug=graph_slug)
+        self._api = API(token=auth, graph_slug=graph_slug)
         self.nodes = Data(api=self._api, mode=NODE)
         self.relationships = Data(api=self._api, mode=RELATIONSHIP)
         self.rels = self.relationships
@@ -386,7 +386,7 @@ class API(object):
         # - description
         return (self._api
                     .graphs(self._slug)
-                    .types.nodes.post(params=params))
+                    .types.nodes.post(params))
 
     def get_relationshiptypes(self):
         """Get relationship types for a graph."""
@@ -396,12 +396,15 @@ class API(object):
 
     def post_relationshiptypes(self, params):
         """Create relationship types for a graph."""
+        # Required:
+        # - source
+        # - target
         # The params available are:
         # - name
         # - description
         return (self._api
                     .graphs(self._slug)
-                    .types.relationships.post(params=params))
+                    .types.relationships.post(params))
 
     def get_nodetype(self, nodetype_slug):
         """Get a single node type for a graph."""
