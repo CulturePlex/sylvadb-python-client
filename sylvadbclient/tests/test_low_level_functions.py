@@ -618,7 +618,7 @@ class GraphTestSuite(unittest.TestCase):
         self.assertTrue(len(result['nodes']) == 0)
         self.api.delete_graph()
 
-    def test_filter_nodes(self):
+    def test_filter_nodes_get(self):
         name = "test_name"
         description = "description_name"
         create_and_use_graph(self, name, description)
@@ -647,7 +647,8 @@ class GraphTestSuite(unittest.TestCase):
         result = self.api.post_nodes(nodetype_slug, nodes_list)
         self.assertTrue(len(result) == 2)
         filtering_params = {prop_name: node_name1}
-        result = self.api.filter_nodes(nodetype_slug, params=filtering_params)
+        result = self.api.filter_nodes_get(
+            nodetype_slug, params=filtering_params)
         self.assertTrue(len(result['nodes']) == 1)
         self.api.delete_graph()
 

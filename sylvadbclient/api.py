@@ -585,6 +585,18 @@ class API(object):
         return (self._api
                     .graphs(self._slug)
                     .types.nodes(nodetype_slug)
+                    .filter.post(params))
+
+    def filter_nodes_get(self, nodetype_slug, limit=None, offset=None,
+                         params=None):
+        """Filtering over nodes for a node type using params."""
+        # Required:
+        # - nodetype_slug
+        # The params available are:
+        # - The properties and their values to filter.
+        return (self._api
+                    .graphs(self._slug)
+                    .types.nodes(nodetype_slug)
                     .filter.get(**params))
 
     def get_node(self, nodetype_slug, node_id):
